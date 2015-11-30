@@ -123,7 +123,8 @@ def main():
         argument_spec={
             'state': {'default': 'running', 'choices': ['running', 'absent']},
             'name': {'required': True, 'type': 'str'},
-            'driver': {'required': True, 'choices': ['digitalocean']}
+            'driver_config': {'required': True},
+            # 'driver': {'required': True, 'choices': ['digitalocean']}
             # 'backup_dir': { 'required': True, 'type': 'str' },
             # 'path': { 'required': True, 'type': 'str' },
             # 'timestamp': { 'required': True, 'type': 'str' }

@@ -12,14 +12,14 @@ class ActionModule(object):
         self.runner = runner
         self.basedir = runner.basedir
 
-    def _arg_or_fact(self, arg_name, fact_name, args, inject):
-        res = args.get(arg_name)
-        if res is not None:
-            return res
-
-        template_string = '{{ %s }}' % fact_name
-        res = template.template(self.basedir, template_string, inject)
-        return None if res == template_string else res
+    # def _arg_or_fact(self, arg_name, fact_name, args, inject):
+    #     res = args.get(arg_name)
+    #     if res is not None:
+    #         return res
+    #
+    #     template_string = '{{ %s }}' % fact_name
+    #     res = template.template(self.basedir, template_string, inject)
+    #     return None if res == template_string else res
 
     def _merge_args(self, module_args, complex_args):
         args = {}
