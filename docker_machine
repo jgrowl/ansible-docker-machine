@@ -12,6 +12,8 @@ from docker_machine.cli.driver_config import (
     create_config_from_dict
 )
 
+from docker_machine.errors import MissingRequiredArgument
+
 
 class DockerMachineModule(object):
     def __init__(self, module):
@@ -20,20 +22,21 @@ class DockerMachineModule(object):
         self.state = args['state']
         self.name = args['name']
         self.driver = args['driver']
-
-        driver_config = args.copy()
-        for k in ['state', 'name', 'driver']:
-            driver_config.pop(k)
-        self.driver_config = create_config_from_dict(self.driver, driver_config)
-
+        self.status = None
         self.client = docker_machine.Client()
+        self.driver_config = args.copy()
+        for k in ['state', 'name', 'driver']:
+            self.driver_config.pop(k)
+
+    def execute(self):
+        try:
+            self.driver_config = create_config_from_dict(self.driver, self.driver_config)
+        except MissingRequiredArgument as e:
+            return dict(changed=False, failed=True, msg="missing required arguments: {}".format(e.arg_name))
 
         if self.client.machine_name_exists(self.name):
             self.status = self.client.machine_status(self.name)
-        else:
-            self.status = None
 
-    def execute(self):
         if self.state == 'running' and self.status is None:
             self.client.create_machine(self.name, self.driver_config)
             return dict(changed=True)
@@ -42,6 +45,7 @@ class DockerMachineModule(object):
             return dict(changed=True)
 
         return dict(changed=False)
+
 
 def main():
     global module
