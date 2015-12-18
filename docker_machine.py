@@ -35,16 +35,6 @@ class ActionModule(object):
         args = self._merge_args(module_args, complex_args)
 
         # path = args.get('path')
-        # backup_dir = self._arg_or_fact('backup_dir', 'deployment_backup_dir', args, inject)
-        # if not backup_dir:
-        #     return ReturnData(conn=conn, result=dict(
-        #         failed=True,
-        #         msg="Please define either backup_dir parameter or deployment_backup_dir variable"
-        #     ))
-        #
-        # timestamp_generated, timestamp = False, self._arg_or_fact('timestamp', 'deployment_backup_timestamp', args, inject)
-        # if not timestamp:
-        #     timestamp_generated, timestamp = True, _generate_timestamp()
 
         driver_config = args.get('driver_config')
 

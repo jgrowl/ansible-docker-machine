@@ -9,10 +9,14 @@ short_description: Create docker host machine using docker-machine
 
 import docker_machine
 from docker_machine.cli.driver_config import (
-    create_config_from_dict
+    create_config_from_dict,
+    list_supported_drivers
 )
 
-from docker_machine.errors import MissingRequiredArgument
+from docker_machine.errors import (
+    MissingRequiredArgument,
+    UnknownDriverException
+)
 
 
 class DockerMachineModule(object):
@@ -23,16 +27,20 @@ class DockerMachineModule(object):
         self.name = args['name']
         self.driver = args['driver']
         self.status = None
-        self.client = docker_machine.Client()
+        self.client = None
         self.driver_config = args.copy()
         for k in ['state', 'name', 'driver']:
             self.driver_config.pop(k)
 
     def execute(self):
+        self.client = docker_machine.Client()
+
         try:
             self.driver_config = create_config_from_dict(self.driver, self.driver_config)
         except MissingRequiredArgument as e:
             return dict(changed=False, failed=True, msg="missing required arguments: {}".format(e.arg_name))
+        except UnknownDriverException as e:
+            return dict(changed=False, failed=True, msg="value of driver must be one of: {} got: {}".format(', '.join(list_supported_drivers()), self.driver))
 
         if self.client.machine_name_exists(self.name):
             self.status = self.client.machine_status(self.name)
