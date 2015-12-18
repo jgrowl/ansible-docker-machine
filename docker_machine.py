@@ -46,6 +46,9 @@ class ActionModule(object):
         # if not timestamp:
         #     timestamp_generated, timestamp = True, _generate_timestamp()
 
+        driver_config = args.get('driver_config')
+
+
         # module_args_tmp = "path=%s backup_dir=%s timestamp=%s" % (args.get('path'), backup_dir, timestamp)
         module_args_tmp = "state=%s name=%s driver=%s" % (args.get('state'), args.get('name'), args.get('driver'))
         module_return = self.runner._execute_module(conn, tmp, 'docker_machine', module_args_tmp, inject=inject,
@@ -54,10 +57,5 @@ class ActionModule(object):
         # # uncomment out to make debug output module always verbose
         # # module_return.result['verbose_always'] = True
         #
-        # if timestamp_generated:
-        #     facts = module_return.result.get('ansible_facts', {})
-        #     if not facts:
-        #         module_return.result['ansible_facts'] = facts
-        #     facts['deployment_backup_timestamp'] = timestamp
 
         return module_return
