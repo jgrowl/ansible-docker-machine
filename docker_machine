@@ -15,7 +15,8 @@ from docker_machine.cli.driver_config import (
 
 from docker_machine.errors import (
     MissingRequiredArgument,
-    UnknownDriverException
+    UnknownDriverException,
+    DockerMachineException
 )
 
 
@@ -33,26 +34,26 @@ class DockerMachineModule(object):
             self.driver_config.pop(k)
 
     def execute(self):
-        self.client = docker_machine.Client()
-
         try:
+            self.client = docker_machine.Client()
             self.driver_config = create_config_from_dict(self.driver, self.driver_config)
+
+            if self.client.machine_name_exists(self.name):
+                self.status = self.client.machine_status(self.name)
+
+            if self.state == 'running' and self.status is None:
+                self.client.create_machine(self.name, self.driver_config)
+                return dict(changed=True)
+            elif self.state == 'absent' and self.status is not None:
+                self.client.remove_machine(self.name)
+                return dict(changed=True)
+            return dict(changed=False)
         except MissingRequiredArgument as e:
             return dict(changed=False, failed=True, msg="missing required arguments: {}".format(e.arg_name))
-        except UnknownDriverException as e:
+        except UnknownDriverException:
             return dict(changed=False, failed=True, msg="value of driver must be one of: {} got: {}".format(', '.join(list_supported_drivers()), self.driver))
-
-        if self.client.machine_name_exists(self.name):
-            self.status = self.client.machine_status(self.name)
-
-        if self.state == 'running' and self.status is None:
-            self.client.create_machine(self.name, self.driver_config)
-            return dict(changed=True)
-        elif self.state == 'absent' and self.status is not None:
-            self.client.remove_machine(self.name)
-            return dict(changed=True)
-
-        return dict(changed=False)
+        except DockerMachineException as e:
+            return dict(changed=False, failed=True, msg=e.message)
 
 
 def main():
@@ -63,6 +64,7 @@ def main():
             'name': {'required': True, 'type': 'str'},
             'driver': {'default': 'none', 'type': 'str'}
         },
+        check_invalid_arguments=False,
         supports_check_mode=False
     )
 

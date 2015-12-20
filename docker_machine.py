@@ -36,7 +36,7 @@ class ActionModule(object):
 
         # path = args.get('path')
 
-        driver_config = args.get('driver_config')
+        # driver_config = args.get('driver_config')
 
 
         # module_args_tmp = "path=%s backup_dir=%s timestamp=%s" % (args.get('path'), backup_dir, timestamp)
