@@ -1,12 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-DOCUMENTATION = '''
----
-module: docker_machine
-short_description: Create docker host machine using docker-machine
-'''
-
 import docker_machine
 from docker_machine.cli.driver_config import (
     create_config_from_dict,
@@ -19,18 +10,18 @@ from docker_machine.errors import (
     DockerMachineException
 )
 
-
 class DockerMachineModule(object):
-    def __init__(self, module):
+    def __init__(self, module, driver):
         self.module = module
+        self.driver = driver
+
         args = module.params
         self.state = args['state']
         self.name = args['name']
-        self.driver = args['driver']
         self.status = None
         self.client = None
         self.driver_config = args.copy()
-        for k in ['state', 'name', 'driver']:
+        for k in ['state', 'name']:
             self.driver_config.pop(k)
 
     def execute(self):
@@ -56,23 +47,13 @@ class DockerMachineModule(object):
             return dict(changed=False, failed=True, msg=e.message)
 
 
-def main():
-    global module
-    module = AnsibleModule(
-        argument_spec={
-            'state': {'default': 'running', 'choices': ['running', 'absent']},
-            'name': {'required': True, 'type': 'str'},
-            'driver': {'default': 'none', 'type': 'str'}
-        },
-        check_invalid_arguments=False,
-        supports_check_mode=False
+def docker_machine_argument_spec(driver_arg_specs=None):
+    required_arg_specs = dict(
+        name=dict(type='str', required=True),
+        state=dict(type='str', choices=['running', 'absent'])
     )
 
-    result = DockerMachineModule(module).execute()
-    module.exit_json(**result)
+    if driver_arg_specs is not None:
+        required_arg_specs.update(driver_arg_specs)
 
-
-from ansible.module_utils.basic import *
-
-if __name__ == '__main__':
-    main()
+    return required_arg_specs
